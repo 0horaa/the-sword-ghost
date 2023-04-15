@@ -149,12 +149,16 @@ export function Game() {
         }
     }, [isAttacking]);
 
-
+    const enemiesSpawnCode = useRef<NodeJS.Timeout | null>(null);
+    
     useEffect(() => {
         function spawnEnemy() {
+            const spawnOnTop = Math.random() > 0.5;
+            const spawnOnLeft = Math.random() > 0.5;
+
             const enemy: Enemy = {
-                x: Math.random() * windowWidth,
-                y: Math.random() * windowHeight,
+                x: spawnOnLeft? 0 : windowWidth - 40,
+                y: spawnOnTop ? 0 : windowHeight - 40,
                 width: 40,
                 height: 40,
                 speed: 5,
@@ -164,12 +168,12 @@ export function Game() {
             setEnemies((previous) => [...previous, enemy]);
         }
 
-        setInterval(() => {
+        enemiesSpawnCode.current = setInterval(() => {
             spawnEnemy();
         }, 3000);
     }, []);
 
-    const enemiesClearCode = useRef<NodeJS.Timeout | null>(null);
+    const enemiesGoingToPlayerCode = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         const enemyHasCollidedWithPlayer = enemies.some((enemy) => {
@@ -184,6 +188,11 @@ export function Game() {
         if (enemyHasCollidedWithPlayer) {
             alert("Game Over!");
             setEnemies([]);
+
+            if (enemiesSpawnCode.current) {
+                clearInterval(enemiesSpawnCode.current);
+            }
+
             return;
         }
 
@@ -207,11 +216,11 @@ export function Game() {
             setEnemies(enemiesUpdated);
         }
 
-        if (enemiesClearCode.current) {
-            clearInterval(enemiesClearCode.current);
+        if (enemiesGoingToPlayerCode.current) {
+            clearTimeout(enemiesGoingToPlayerCode.current);
         }
 
-        enemiesClearCode.current = setTimeout(() => {
+        enemiesGoingToPlayerCode.current = setTimeout(() => {
             goToPlayer();
         }, 100);
     }, [enemies]);
