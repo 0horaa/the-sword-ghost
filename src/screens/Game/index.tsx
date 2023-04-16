@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { useWindowDimensions, TouchableOpacity, View, Image } from "react-native";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useWindowDimensions, TouchableOpacity, View, Image, Text } from "react-native";
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { randomUUID } from "expo-crypto";
 
 import { styles } from "./styles";
 
@@ -11,6 +12,7 @@ import CursedGhost from "../../assets/cursed-ghost.gif"
 type Direction = "up" | "right" | "down" | "left";
 
 type Enemy = {
+    id: string;
     x: number;
     y: number;
     width: number;
@@ -134,6 +136,7 @@ export function Game() {
     }
 
     const [enemies, setEnemies] = useState<Enemy[]>([]);
+    const [killCount, setKillCount] = useState(0);
 
     useEffect(() => {
         if (!isAttacking) {
@@ -153,18 +156,24 @@ export function Game() {
         });
 
         if (enemiesWhoCollidedWithSword.length) {
+            setKillCount((previous) => previous + enemiesWhoCollidedWithSword.length);
             setEnemies((previous) => previous.filter((enemy) => !enemiesWhoCollidedWithSword.includes(enemy)));
         }
     }, [isAttacking]);
 
     const enemiesSpawnCode = useRef<NodeJS.Timeout | null>(null);
-    
+
     useEffect(() => {
+        if (enemies.length >= 20) {
+            return;
+        }
+
         function spawnEnemy() {
             const spawnOnTop = Math.random() > 0.5;
             const spawnOnLeft = Math.random() > 0.5;
 
             const enemy: Enemy = {
+                id: randomUUID(),
                 x: spawnOnLeft? 0 : windowWidth - 50,
                 y: spawnOnTop ? 0 : windowHeight - 50,
                 width: 50,
@@ -176,10 +185,14 @@ export function Game() {
             setEnemies((previous) => [...previous, enemy]);
         }
 
-        enemiesSpawnCode.current = setInterval(() => {
+        if (enemiesSpawnCode.current) {
+            clearTimeout(enemiesSpawnCode.current);
+        }
+
+        enemiesSpawnCode.current = setTimeout(() => {
             spawnEnemy();
-        }, 3000);
-    }, []);
+        }, 2000);
+    }, [enemies.length]);
 
     const enemiesGoingToPlayerCode = useRef<NodeJS.Timeout | null>(null);
 
@@ -196,9 +209,10 @@ export function Game() {
         if (enemyHasCollidedWithPlayer) {
             alert("Game Over!");
             setEnemies([]);
+            setKillCount(0);
 
             if (enemiesSpawnCode.current) {
-                clearInterval(enemiesSpawnCode.current);
+                clearTimeout(enemiesSpawnCode.current);
             }
 
             return;
@@ -235,6 +249,8 @@ export function Game() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.score}>Inimigos derrotados: {killCount}</Text>
+
             <Image
                 source={direction.current === "up" ? GhostUp : Ghost}
                 fadeDuration={0}
@@ -246,9 +262,9 @@ export function Game() {
             />
             {isAttacking && <View style={[styles.sword, { left: swordPosition.left, top: swordPosition.top } ]} />}
 
-            {enemies.map((enemy, index) => (
+            {enemies.map((enemy) => (
                 <Image
-                    key={index}
+                    key={enemy.id}
                     source={CursedGhost}
                     fadeDuration={0}
                     style={[styles.enemy, { left: enemy.x, top: enemy.y}]}

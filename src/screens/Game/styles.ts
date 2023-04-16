@@ -6,6 +6,12 @@ export const styles = StyleSheet.create({
         padding: 10
     },
 
+    score: {
+        fontFamily: "Orbitron_500Medium",
+        fontSize: 18,
+        color: "#fff",
+    },
+
     player: {
         height: 50,
         width: 50,
