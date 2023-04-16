@@ -7,9 +7,8 @@ export const styles = StyleSheet.create({
     },
 
     player: {
-        backgroundColor: "#fff",
-        height: 40,
-        width: 40,
+        height: 50,
+        width: 50,
         position: "absolute",
     },
 
@@ -21,9 +20,8 @@ export const styles = StyleSheet.create({
     },
 
     enemy: {
-        backgroundColor: "#000",
-        height: 40,
-        width: 40,
+        height: 50,
+        width: 50,
         position: "absolute",
     },
 

@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useWindowDimensions, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions, TouchableOpacity, View, Image } from "react-native";
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { styles } from "./styles";
+
+import GhostUp from "../../assets/ghost-up.gif";
+import Ghost from "../../assets/ghost.gif";
+import CursedGhost from "../../assets/cursed-ghost.gif"
 
 type Direction = "up" | "right" | "down" | "left";
 
@@ -18,8 +22,8 @@ type Enemy = {
 export function Game() {
     const PLAYER_SPEED = 20;
     const PLAYER_MOVEMENT_DELAY = 0;
-    const PLAYER_HEIGHT = 40;
-    const PLAYER_WIDTH = 40;
+    const PLAYER_HEIGHT = 50;
+    const PLAYER_WIDTH = 50;
 
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -116,6 +120,10 @@ export function Game() {
     }
 
     function handleAttack() {
+        if (isAttacking) {
+            return;
+        }
+
         setIsAttacking(true);
 
         setSwordPosition(getSwordPosition());
@@ -157,10 +165,10 @@ export function Game() {
             const spawnOnLeft = Math.random() > 0.5;
 
             const enemy: Enemy = {
-                x: spawnOnLeft? 0 : windowWidth - 40,
-                y: spawnOnTop ? 0 : windowHeight - 40,
-                width: 40,
-                height: 40,
+                x: spawnOnLeft? 0 : windowWidth - 50,
+                y: spawnOnTop ? 0 : windowHeight - 50,
+                width: 50,
+                height: 50,
                 speed: 5,
                 direction: "up",
             };
@@ -227,11 +235,24 @@ export function Game() {
 
     return (
         <View style={styles.container}>
-            <View style={[styles.player, { left: playerX, top: playerY }]} />
+            <Image
+                source={direction.current === "up" ? GhostUp : Ghost}
+                fadeDuration={0}
+                style={[styles.player, {
+                    left: playerX,
+                    top: playerY,
+                    transform: [{ scaleX: direction.current === "left" ? 1 : -1 }]
+                }]}
+            />
             {isAttacking && <View style={[styles.sword, { left: swordPosition.left, top: swordPosition.top } ]} />}
 
             {enemies.map((enemy, index) => (
-                <View key={index} style={[styles.enemy, { left: enemy.x, top: enemy.y}]} />
+                <Image
+                    key={index}
+                    source={CursedGhost}
+                    fadeDuration={0}
+                    style={[styles.enemy, { left: enemy.x, top: enemy.y}]}
+                />
             ))}
 
             <View style={styles.controls}>
